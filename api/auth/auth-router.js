@@ -57,18 +57,33 @@ router.post('/register', checkPasswordLength, checkUsernameFree, (req, res, next
     "message": "Invalid credentials"
   }
  */
+  // router.post('/login', checkUsernameExists, (req, res, next) => {
+  //   const { password } = req.body
+  //   if (bcrypt.compareSync(password, req.user.password)) {
+  //     // make it so the cookie is set on the client
+  //     // make it so server store a session with a session id 
+  //     req.session.user = req.user
+  //     res.json({ message: `Welcome ${req.user.username}`})
+  //   } else {
+  //     next({ status: 401, message: 'Invalid credentials'})
+  //   }
+  // })
   router.post('/login', checkUsernameExists, (req, res, next) => {
-    const { password } = req.body
+    const { password } = req.body;
+    
+    console.log('Provided password:', password);  // Debugging line
+    console.log('Stored password:', req.user.password);  // Debugging line
+  
     if (bcrypt.compareSync(password, req.user.password)) {
-      // make it so the cookie is set on the client
-      // make it so server store a session with a session id 
-      req.session.user = req.user
-      res.json({ message: `Welcome ${req.user.username}`})
+      req.session.user = req.user;
+  
+      console.log('Session:', req.session);  // Debugging line
+  
+      res.json({ message: `Welcome ${req.user.username}` });
     } else {
-      next({ status: 401, message: 'Invalid credentials'})
+      next({ status: 401, message: 'Invalid credentials' });
     }
-  })
-
+  });
 /**
   3 [GET] /api/auth/logout
 
@@ -84,7 +99,17 @@ router.post('/register', checkPasswordLength, checkUsernameFree, (req, res, next
     "message": "no session"
   }
  */router.get('/logout', (req, res, next) => {
-  res.json('logout')
+  if (req.session.user) {
+    req.session.destroy(err => {
+      if (err) {
+        next(err)
+      } else {
+        res.json({ message: "logged out"})
+      }
+    })
+  } else {
+    res.json({ message: 'no session'})
+  }
 })
  
 // Don't forget to add the router to the `exports` object so it can be required in other modules

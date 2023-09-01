@@ -8,7 +8,11 @@ const User = require('../users/users-model')
   }
 */
 function restricted(req, res, next) {
-next()
+if ( req.session.user) {
+  next()
+} else {
+  next({ status: 401, message: 'You shall not pass!'})
+}
 }
 
 /*
@@ -40,20 +44,36 @@ try {
     "message": "Invalid credentials"
   }
 */
+// async function checkUsernameExists(req, res, next) {
+//   try {
+//     const users = await User.findBy({ username: req.body.username })
+//     if (!users.length) {
+//       req.user = users[0]
+//       next()
+//     } else {
+//       next({ message: "Invalid credentials", status: 401})
+//     }
+//   } catch (err) {
+//     next(err)
+//   }
+// }
 async function checkUsernameExists(req, res, next) {
   try {
-    const users = await User.findBy({ username: req.body.username })
-    if (!users.length) {
-      req.user = users[0]
-      next()
+    const users = await User.findBy({ username: req.body.username });
+  
+    
+    if (users.length) {
+      req.user = users[0];
+     
+      next();
     } else {
-      next({ message: "Invalid credentials", status: 401})
+      next({ message: "Invalid credentials", status: 401 });
     }
   } catch (err) {
-    next(err)
+   
+    next(err);
   }
 }
-
 /*
   If password is missing from req.body, or if it's 3 chars or shorter
 
